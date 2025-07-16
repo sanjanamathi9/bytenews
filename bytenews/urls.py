@@ -38,12 +38,20 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Auth routes
     path('register/', user_views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='registration/logged_out.html'), name='logout'),
-    path('', include('news.urls')),  # Your news app home
-    path('', include('users.urls')),  # includes login/logout
-    
-    # ✅ Add this route to show logged_out.html
+
+    # App URLs
+    path('', include('news.urls', namespace='news')),  # ✅ Only include here, not in news/urls.py
+    path('users/', include('users.urls')),
+
     path('logged_out/', TemplateView.as_view(template_name='registration/logged_out.html')),
 ]
+
+
+
+
+
