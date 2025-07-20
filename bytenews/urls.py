@@ -35,10 +35,16 @@ from django.urls import path, include
 from users import views as user_views
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
+from news.views import home
+from news import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+    # ✅ Home page goes to landing page
+    path('', home, name='landing'),
+
+    # ✅ Article list at /articles/
+    path('articles/', include('news.urls')),
     # Auth routes
     path('register/', user_views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
@@ -49,6 +55,10 @@ urlpatterns = [
     path('users/', include('users.urls')),
 
     path('logged_out/', TemplateView.as_view(template_name='registration/logged_out.html')),
+    path('', views.home, name='home')
+    
+
+
 ]
 
 

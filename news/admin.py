@@ -1,9 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
-#news/admin.py:
-
-from django.contrib import admin
 from .models import Category, Article, UserPreference, ReadingHistory
 
 @admin.register(Category)

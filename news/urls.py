@@ -20,10 +20,13 @@ urlpatterns = [
     path('', views.ArticleListView.as_view(), name='article_list'),
     path('article/<int:pk>/', views.ArticleDetailView.as_view(), name='detail'),
     path('logout/', auth_views.LogoutView.as_view(next_page='logged_out'), name='logout'),
+    path('', views.index, name='home'),
+    path('article/<int:pk>/', views.article_detail, name='article_detail'),
 
     
     # Optional: logged out message page
-    path('logged_out/', TemplateView.as_view(template_name='registration/logged_out.html')),
+    path('logged_out/', TemplateView.as_view(template_name='registration/logged_out.html')),    
+
 ]
 
 
