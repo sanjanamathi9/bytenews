@@ -9,25 +9,48 @@
 </head>
 <body>
 
-<!-- Bootstrap Navbar -->
-<!-- Top Black Header (Reduced Height) -->
-<nav class="navbar navbar-dark bg-dark" style="padding: 15px 12px;">
-  <div class="container-fluid d-flex align-items-center justify-content-between">
-    <a class="navbar-brand mb-0" href="/" style="font-size: 1rem;">NewsGenie AI</a>
-    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-      <li class="nav-item">
-        <a class="nav-link custom-nav-link" href="{% url 'news:home' %}">📰 Articles</a>
-      </li>
-    </ul>
-    {% if user.is_authenticated %}
-      <form method="post" action="{% url 'logout' %}" style="margin: 0; padding: 0;">
-        {% csrf_token %}
-        <button type="submit"  style="height: 30px; padding: 2px 8px;">Logout</button>
-      </form>
-    {% endif %}
-  </div>
-</nav>
 
+    <!-- ✅ Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100">
+  <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+    <a class="navbar-brand fw-bold text-primary" >NewsGenie AI</a>
+            
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+           {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'landing' %}">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/articles/' %}active{% endif %}" href="{% url 'home' %}">Articles</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/preferences/' %}active{% endif %}" href="{% url 'users:preferences' %}">Preferences</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.path == '/History/' %}active{% endif %}" href="{% url 'reading_history' %}">History</a>
+            </li>
+            <form class="navbar-brand" method="post" action="{% url 'logout' %}">
+             {% csrf_token %}
+            <button type="submit">Logout</button>
+            </form>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">Login</a>
+             </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'register' %}">Register</a>
+              </li>
+              {% endif %}
+                    
+              </ul>
+        </div>
+      </div>
+    </nav>
 <!-- Flash messages -->
 <div class="container mt-3">
     {% if messages %}

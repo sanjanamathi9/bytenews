@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Your Preferences{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-primary">Select Your Preferred News Categories</h2>
+    <form method="post">
+        {% csrf_token %}
+            <div class="mb-4">
+                {% for checkbox in form.preferred_categories %}
+                    <div class="form-check">
+                        {{ checkbox.tag }}
+                        <label class="form-check-label">{{ checkbox.choice_label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-outline-primary">Save Preferences</button>
+    </form>
+</div>
+{% endblock %}
+
+

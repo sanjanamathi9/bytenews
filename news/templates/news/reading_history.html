@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>Your Reading History</h2>
+    {% if history %}
+      <ul>
+        {% for entry in history %}
+          <li>
+            <strong>{{ entry.article.title }}</strong> (Read on {{ entry.read_at|date:"d M Y, H:i" }})
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You haven't read any articles yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

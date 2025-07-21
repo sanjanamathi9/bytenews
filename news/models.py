@@ -1,9 +1,4 @@
 from django.db import models
-
-#news/models.py:
-
-# Create your models here.
-from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -15,7 +10,7 @@ class Category(models.Model):
         return self.name
     
     class Meta:
-        verbose_name_plural = "Categories"
+        ordering = ['name']
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
@@ -47,3 +42,5 @@ class ReadingHistory(models.Model):
     
     def __str__(self):
         return f"{self.user.username} read {self.article.title}"
+    class Meta:
+        unique_together = ('user','article')

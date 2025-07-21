@@ -2,21 +2,25 @@
 {% block title %}All Articles{% endblock %}
 {% block content %}
 <div class="container mt-4">
+
+    <!-- Header with category buttons -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">Latest ByteNews Articles {% if current_category != 'All' %}in {{ current_category }}{% endif %}</h1>
         <div>
-            <a href="{% url 'news:article_list' %}" class="btn btn-outline-secondary btn-sm {% if current_category == 'All' %}active{% endif %}">All Categories</a>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm {% if current_category == 'All' %}active{% endif %}">All Categories</a>
             {% for category in categories %}
-                <a href="{% url 'news:article_list' %}?category={{ category.name }}" class="btn btn-outline-secondary btn-sm {% if current_category == category.name %}active{% endif %}">{{ category.name }}</a>
+                <a href="{% url 'home' %}?category={{ category.name }}" class="btn btn-outline-secondary btn-sm {% if current_category == category.name %}active{% endif %}">{{ category.name }}</a>
             {% endfor %}
         </div>
     </div>
 
-    <form method="get" action="{% url 'news:article_list' %}" class="d-flex align-items-stretch mb-3" style="margin: 0; padding: 0;">
-    
-    <input type="text" name="q" value="{{ query }}" placeholder="Search articles..." class="form-control flex-grow-1 me-0" class="btn btn-outline-secondary w-auto px-10"/>
-    <button type="submit" class="btn btn-outline-secondary w-auto px-2">Search</button>
-  </form>
+    <!-- Search Bar -->
+    <form method="get" action="{% url 'home' %}" class="d-flex align-items-stretch mb-3">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search articles..." class="form-control me-2" />
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+    </form>
+
+    <!-- Articles Section -->
     <div class="row">
         {% for article in articles %}
         <div class="col-md-6 col-lg-4 mb-4">
@@ -26,16 +30,41 @@
                     <h6 class="card-subtitle mb-2 text-muted">
                         By {{ article.author }} on {{ article.publication_date|date:"F d, Y" }}
                     </h6>
-                    {% for category in article.categories.all %}
-                        <span class="badge bg-primary me-1">{{ category.name }}</span>
-                    {% endfor %}
+                    
                     <p class="card-text mt-2">{{ article.content|truncatechars:150 }}</p>
-                    <a href="{% url 'news:detail' article.pk %}" class="btn btn-sm btn-primary">Read More</a>
+                    <a href="{% url 'article_detail' article.pk %}" class="btn btn-sm btn-primary">Read More</a>
                 </div>
             </div>
         </div>
         {% empty %}
             <p class="col-12">No articles found.</p>
         {% endfor %}
+    </div>
+
+    <!-- Recommendations Section -->
+    {% if recommendations %}
+    <hr>
+    <h3>Recommended For You</h3>
+    <div class="row mt-3">
+        {% for article in recommendations %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card border-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ article.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        By {{ article.author }} on {{ article.publication_date|date:"F d, Y" }}
+                    </h6>
+                    {% if article.category %}
+                        <span class="badge bg-info">{{ article.category.name }}</span>
+                    {% endif %}
+                    <p class="card-text mt-2">{{ article.content|truncatechars:150 }}</p>
+                    <a href="{% url 'home' %}" class="btn btn-sm btn-info">Read More</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

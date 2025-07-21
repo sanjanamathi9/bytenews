@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'news:article_list' %}">Articles</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Articles</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ article.title|truncatechars:30 }}</li>
         </ol>
     </nav>
@@ -15,6 +15,6 @@
     {% endfor %}
     <hr>
     <div class="lead">{{ article.content|linebreaksbr }}</div>
-    <a href="{% url 'news:article_list' %}" class="btn btn-outline-primary mt-4">Back to Articles</a>
+    <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">Back to Articles</a>
 </div>
 {% endblock %}
