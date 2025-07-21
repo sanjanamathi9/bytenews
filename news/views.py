@@ -26,10 +26,21 @@ class ArticleListView(ListView):
         category_name = self.request.GET.get('category')
         query = self.request.GET.get('q')
 
+        if self.request.user.is_authenticated:
+            try:
+                preferences = self.request.user.userpreference.preferred_categories.all()
+                if preferences.exists():
+                    queryset = queryset.filter(category__in=preferences)
+                    messages.info(self.request, "Showing articles based on your preferences.")
+                else:
+                    messages.info(self.request, "No preferences set. Showing all articles.")
+            except UserPreference.DoesNotExist:
+                messages.info(self.request, "No preferences found. Showing all articles.")
+
+        # Now apply category filter on top of preferences (if any)
         if category_name:
             queryset = queryset.filter(category__name__iexact=category_name)
 
-         # ✅ Apply search filter
         if query:
             queryset = queryset.filter(
                 Q(title__icontains=query) |
@@ -37,25 +48,16 @@ class ArticleListView(ListView):
                 Q(summary__icontains=query) |
                 Q(category__name__icontains=query)
             ).distinct()
-        if self.request.user.is_authenticated:
-            try:
-                preferences = self.request.user.userpreference.preferred_categories.all()
-                if preferences.exists():
-                    queryset = queryset.filter(category__in=preferences).distinct()
-                    messages.info(self.request, "Showing articles based on your preferences.")
-                else:
-                    messages.info(self.request, "No preferences set. Showing all articles.")
-            except UserPreference.DoesNotExist:
-                messages.info(self.request, "No preferences found. Showing all articles.")
 
         return queryset
+
 
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
-        context['categories'] = Category.objects.annotate(article_count=Count('article')).order_by('name')
-        context['current_category'] = self.request.GET.get('category', 'All')
+        context['categories'] = Category.objects.annotate(article_count=Count('article'))
+        context['current_category'] = self.request.GET.get('category', '')
         context['query'] = self.request.GET.get('q', '')
         context['recommendations'] = []
 

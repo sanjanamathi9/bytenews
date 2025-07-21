@@ -19,6 +19,9 @@ class Article(models.Model):
     source_url = models.URLField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     published_date = models.DateTimeField(default=timezone.now)
+    link = models.URLField(null=True, blank=True)
+    publication_date = models.DateTimeField(null=True, blank=True)
+    author = models.CharField(max_length=255, default='Unknown')
     created_at = models.DateTimeField(auto_now_add=True)
     audio_file = models.FileField(upload_to='audio/', blank=True, null=True)
     
