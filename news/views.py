@@ -1,16 +1,12 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from django.db.models import Q, Count
 from django.contrib import messages
 from django.shortcuts import render
-from .models import Article, Category,ReadingHistory
-from django.views.generic import TemplateView
-from django.views.generic import DetailView
-from news.models import UserPreference
-
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from news.models import ReadingHistory
 import logging
+
+from .models import Article, Category, ReadingHistory, UserPreference
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,28 +26,25 @@ class ArticleListView(ListView):
             try:
                 preferences = self.request.user.userpreference.preferred_categories.all()
                 if preferences.exists():
-                    queryset = queryset.filter(category__in=preferences)
+                    queryset = queryset.filter(categories__in=preferences)
                     messages.info(self.request, "Showing articles based on your preferences.")
                 else:
                     messages.info(self.request, "No preferences set. Showing all articles.")
             except UserPreference.DoesNotExist:
                 messages.info(self.request, "No preferences found. Showing all articles.")
 
-        # Now apply category filter on top of preferences (if any)
         if category_name:
-            queryset = queryset.filter(category__name__iexact=category_name)
+            queryset = queryset.filter(categories__name__iexact=category_name)
 
         if query:
             queryset = queryset.filter(
                 Q(title__icontains=query) |
                 Q(content__icontains=query) |
                 Q(summary__icontains=query) |
-                Q(category__name__icontains=query)
+                Q(categories__name__icontains=query)
             ).distinct()
 
         return queryset
-
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -60,7 +53,6 @@ class ArticleListView(ListView):
         context['current_category'] = self.request.GET.get('category', '')
         context['query'] = self.request.GET.get('q', '')
         context['recommendations'] = []
-
 
         if self.request.user.is_authenticated:
             try:
@@ -71,13 +63,14 @@ class ArticleListView(ListView):
 
                 if prefs.exists():
                     recommendations = Article.objects.filter(
-                        category__in=prefs
+                        categories__in=prefs
                     ).exclude(id__in=read_ids).order_by('-published_date')[:5]
                     context['recommendations'] = recommendations
             except UserPreference.DoesNotExist:
                 pass
 
         return context
+
 
 class ArticleDetailView(DetailView):
     model = Article
@@ -89,6 +82,7 @@ class ArticleDetailView(DetailView):
         if self.request.user.is_authenticated:
             ReadingHistory.objects.get_or_create(user=self.request.user, article=obj)
         return obj
+
 
 class HomePageView(TemplateView):
     template_name = 'news/homepage.html'

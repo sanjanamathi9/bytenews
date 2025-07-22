@@ -8,10 +8,14 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ['title', 'category', 'published_date', 'created_at']
-    list_filter = ['category', 'published_date']
+    list_display = ['title', 'get_categories', 'published_date', 'created_at']
+    list_filter = ['categories', 'published_date']  # ✅ use 'categories' for filtering
     search_fields = ['title', 'content']
     readonly_fields = ['created_at']
+
+    def get_categories(self, obj):
+        return ", ".join([cat.name for cat in obj.categories.all()])
+    get_categories.short_description = 'Categories'  # ✅ Label for admin display
 
 @admin.register(UserPreference)
 class UserPreferenceAdmin(admin.ModelAdmin):

@@ -9,6 +9,9 @@
         </ol>
     </nav>
     <h1 class="mb-3">{{ article.title }}</h1>
+    <p class="text-muted">
+  By {{ article.author }} from {{ article.source }} on {{ article.publication_date|date:"F d, Y" }}
+</p>
     <p class="text-muted">By {{ article.author }} on {{ article.publication_date|date:"F d, Y" }}</p>
     {% for category in article.categories.all %}
         <span class="badge bg-secondary me-1">{{ category.name }}</span>

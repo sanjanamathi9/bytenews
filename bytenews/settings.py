@@ -135,3 +135,8 @@ LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/logged_out/'
 
 
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # ✅ Required if you have a static/ folder at root
+]
