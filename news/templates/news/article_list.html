@@ -21,9 +21,10 @@
     </form>
 
     <!-- Articles Section -->
-    <div class="row">
+    <div class="row mt-3">
         {% for article in articles %}
         <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card border-info h-100">
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ article.title }}</h5>
@@ -35,6 +36,7 @@
                     <a href="{% url 'article_detail' article.pk %}" class="btn btn-sm btn-primary">Read More</a>
                 </div>
             </div>
+          </div>
         </div>
         {% empty %}
             <p class="col-12">No articles found.</p>
@@ -47,8 +49,8 @@
     <h3>Recommended For You</h3>
     <div class="row mt-3">
         {% for article in recommendations %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card border-info h-100">
+        <div class="col-md-6 col-lg-4 mb-4 border-success">
+          <div class="card border-success border-info h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ article.title }}</h5>
                     
@@ -62,7 +64,7 @@
                         <span class="badge bg-info">{{ article.category.name }}</span>
                     {% endif %}
                     <p class="card-text mt-2">{{ article.content|truncatechars:150 }}</p>
-                    <a href="{% url 'home' %}" class="btn btn-sm btn-info">Read More</a>
+                    <a href="{% url 'article_detail' article.pk %}" class="btn btn-sm btn-info">Read More</a>
                 </div>
             </div>
         </div>

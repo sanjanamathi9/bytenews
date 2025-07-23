@@ -1,8 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+ form {
+    background: #93c1fa;
+    text-align: center;
+    max-width: 450px;
+    margin: 5rem auto;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.1),
+                -10px -10px 30px rgba(255, 255, 255, 0.6);
+    transition: transform 0.3s ease;
+}
+</style>
+<form method="POST">
   <h2>Register</h2>
-  <h2 class="form-heading">User Authentication</h2>
-  <form method="POST">
+  <h2 class="form-heading">User Authentication</h2><br>
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Sign Up</button>
