@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from news.utils import fetch_news_from_rss
+from news.utils import fetch_news_from_rss, generate_summary  # ✅ Import generate_summary
 from news.models import Article, Category
 import logging
 
@@ -34,15 +34,20 @@ class Command(BaseCommand):
             articles_added_from_source = 0
             for article_data in articles_data:
                 try:
-                    # ✅ Check by URL (link) to prevent duplicates
+                    # ✅ Check for duplicate by URL
                     if not Article.objects.filter(link=article_data['link']).exists():
+                        # ✅ Generate summary using article content
+                        article_summary = generate_summary(article_data['content'], article_data['title'], num_sentences=5)  
+
+                        # ✅ Create article with summary field included
                         article = Article.objects.create(
                             title=article_data['title'],
                             content=article_data['content'],
                             publication_date=article_data['publication_date'],
                             author=article_data.get('source', 'Unknown'),
                             link=article_data['link'],
-                            source=article_data['source'] ,
+                            source=article_data['source'],
+                            summary=article_summary  # ✅ Save generated summary
                         )
                         article.categories.add(general_category)
                         articles_added_from_source += 1

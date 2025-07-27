@@ -1,20 +1,92 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ article.title }}{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
+
+    <!-- Breadcrumb Navigation -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'home' %}">Articles</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ article.title|truncatechars:30 }}</li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'home' %}">Articles</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ article.title|truncatechars:30 }}
+            </li>
         </ol>
     </nav>
+
+    <!-- Article Title & Meta -->
     <h1 class="mb-3">{{ article.title }}</h1>
-    <p class="text-muted">By {{ article.author }} from {{ article.source }} on {{ article.publication_date|date:"F d, Y" }}</p>
-    {% for category in article.categories.all %}
-        <span class="badge bg-secondary me-1">{{ category.name }}</span>
-    {% endfor %}
+    <p class="text-muted">
+        By <strong>{{ article.author }}</strong> from <strong>{{ article.source }}</strong>
+        on {{ article.publication_date|date:"F d, Y" }}
+    </p>
+
+    <!-- Categories -->
+    {% if article.categories.exists %}
+        <div class="mb-3">
+            {% for category in article.categories.all %}
+                <span class="badge bg-secondary me-1">{{ category.name }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <hr>
-    <div class="lead"><b>{{ article.content|linebreaksbr }}</b></div>
+
+    <!-- Article Content -->
+    <div class="lead"><strong>{{ article.content|linebreaksbr }}</strong></div>
+
+    <!-- Summary Section -->
+    <hr>
+    {% if article.summary %}
+        <h3 class="mt-4">Summary</h3>
+        <p>{{ article.summary|linebreaksbr }}</p>
+
+        {% if user.is_authenticated %}
+            <small class="text-muted">Was this summary helpful?</small>
+            <form method="post" action="{% url 'submit_summary_feedback' article.pk %}" class="d-inline-block ms-2">
+                {% csrf_token %}
+                <input type="hidden" name="is_helpful" value="true">
+                <button type="submit" class="btn btn-sm btn-success py-0 px-1 me-1">
+                    <i class="bi bi-hand-thumbs-up"></i> Yes
+                </button>
+            </form>
+            <form method="post" action="{% url 'submit_summary_feedback' article.pk %}" class="d-inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="is_helpful" value="false">
+                <button type="submit" class="btn btn-sm btn-danger py-0 px-1">
+                    <i class="bi bi-hand-thumbs-down"></i> No
+                </button>
+            </form>
+            <!-- Optional: You can later show previous feedback status -->
+        {% endif %}
+    {% else %}
+        <h3 class="mt-4 text-muted">No Summary Available</h3>
+        <p>This article doesn't have a summary yet.</p>
+    {% endif %}
+
+    <!-- Generate Summary Form (Authenticated Users Only) -->
+    {% if user.is_authenticated %}
+    <form method="get" action="{% url 'generate_summary' article.pk %}" class="mt-4">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label for="num_sentences" class="form-label">
+                    Summary Length (1–10 sentences):
+                </label>
+                <input type="number" name="num_sentences" id="num_sentences" min="1" max="10"
+                       value="3" class="form-control" required>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-outline-info mt-md-4 mt-2">Generate Summary</button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+
+    <!-- Back to Home Button -->
     <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">Back to Articles</a>
+
 </div>
 {% endblock %}

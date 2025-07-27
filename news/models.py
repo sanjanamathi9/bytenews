@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -15,13 +18,18 @@ class Category(models.Model):
 class Article(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
-    summary = models.TextField(blank=True)
+    
+    # ✅ Updated summary field as per Task 3
+    summary = models.TextField(blank=True, null=True)
+    
     source_url = models.URLField()
     categories = models.ManyToManyField(Category)
     published_date = models.DateTimeField(default=timezone.now)
     source = models.CharField(max_length=100, default='Unknown')
-    link = models.URLField(max_length=500, unique=True, null=True, blank=True)
+    
+    # ⚠️ Removed duplicate `link` field
     link = models.URLField(null=True, blank=True)
+    
     publication_date = models.DateTimeField(null=True, blank=True)
     author = models.CharField(max_length=255, default='Unknown')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -47,5 +55,18 @@ class ReadingHistory(models.Model):
     
     def __str__(self):
         return f"{self.user.username} read {self.article.title}"
+    
     class Meta:
-        unique_together = ('user','article')
+        unique_together = ('user', 'article')
+class SummaryFeedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    is_helpful = models.BooleanField()  # True = helpful, False = not helpful
+    feedback_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'article')  # One feedback per user per article
+        verbose_name_plural = "Summary Feedback"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.article.title[:30]} - Helpful: {self.is_helpful}"

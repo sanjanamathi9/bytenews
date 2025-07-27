@@ -53,10 +53,6 @@
           <div class="card border-success border-info h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ article.title }}</h5>
-                    
-                    <h6 class="card-subtitle mb-2 text-muted">
-                        By {{ article.author }} on {{ article.publication_date|date:"F d, Y" }}
-                    </h6>
                     <h6 class="card-subtitle mb-2 text-muted">
                         By {{ article.author }} from {{ article.source }} on {{ article.publication_date|date:"F d, Y" }}
                     </h6>

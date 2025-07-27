@@ -27,3 +27,8 @@ class ReadingHistoryAdmin(admin.ModelAdmin):
     list_display = ['user', 'article', 'read_at']
     list_filter = ['read_at']
     readonly_fields = ['read_at']
+
+from .models import SummaryFeedback
+
+admin.site.register(SummaryFeedback)
+

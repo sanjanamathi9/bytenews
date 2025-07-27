@@ -3,31 +3,36 @@ import feedparser
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 
+# New imports for summarization
+import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+import string
+from collections import Counter
 
-def fetch_bbc_news_rss():
-    BBC_RSS_FEED_URL = "https://feeds.bbci.co.uk/news/rss.xml"
+# Download required NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# ✅ General function for all RSS sources (BBC, CNN, Reuters)
+def fetch_news_from_rss(feed_url, source_name):
     articles_data = []
 
     try:
-        # Make HTTP request to BBC feed
         response = requests.get(
-            BBC_RSS_FEED_URL,
+            feed_url,
             headers={'User-Agent': 'ByteNewsScraper/1.0'},
             timeout=10
         )
-        response.raise_for_status()  # Raise error for bad HTTP status
+        response.raise_for_status()
 
-        # Parse RSS feed content
         feed = feedparser.parse(response.content)
 
         for entry in feed.entries:
             title = entry.title
             link = entry.link
-
-            # Use summary or description for content
             content = entry.get('summary', entry.get('description', 'No content available.'))
 
-            # Try parsing published date
             published_date = None
             if hasattr(entry, 'published_parsed') and entry.published_parsed:
                 published_date = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
@@ -38,21 +43,62 @@ def fetch_bbc_news_rss():
                 except Exception:
                     published_date = None
 
-            # Append article dictionary
             articles_data.append({
                 'title': title,
                 'link': link,
                 'content': content,
                 'publication_date': published_date,
-                'source': 'BBC News'
+                'source': source_name
             })
-
 
         return articles_data
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching RSS feed from BBC News: {e}")
+        print(f"Error fetching RSS feed from {source_name}: {e}")
         return []
     except Exception as e:
-        print(f"An error occurred during RSS parsing: {e}")
+        print(f"An error occurred during RSS parsing for {source_name}: {e}")
         return []
+
+# ✅ Improved summarization for Task 6
+def generate_summary(text, article_title="", num_sentences=3):
+    if not text or not isinstance(text, str):
+        return "No content available to summarize."
+
+    sentences = sent_tokenize(text)
+    if len(sentences) <= num_sentences:
+        return text
+
+    stop_words = set(stopwords.words('english'))
+    words = word_tokenize(text.lower())
+    filtered_words = [word for word in words if word.isalnum() and word not in stop_words]
+
+    word_frequencies = Counter(filtered_words)
+
+    # ✅ Boost title words
+    if article_title:
+        title_words = word_tokenize(article_title.lower())
+        for word in title_words:
+            if word.isalnum() and word not in stop_words:
+                word_frequencies[word] += 0.5
+
+    # ✅ Score sentences
+    sentence_scores = {}
+    for i, sentence in enumerate(sentences):
+        for word in word_tokenize(sentence.lower()):
+            if word in word_frequencies:
+                sentence_scores[i] = sentence_scores.get(i, 0) + word_frequencies[word]
+
+        # ✅ Bonus for first/second sentence
+        if i == 0:
+            sentence_scores[i] = sentence_scores.get(i, 0) + 1.0
+        elif i == 1:
+            sentence_scores[i] = sentence_scores.get(i, 0) + 0.5
+
+    # ✅ Select top N sentences based on score
+    top_sentence_indices = sorted(sentence_scores.items(), key=lambda x: x[1], reverse=True)[:num_sentences]
+    top_sentence_indices = sorted([i for i, _ in top_sentence_indices])
+
+    final_summary = [sentences[i] for i in top_sentence_indices]
+    return " ".join(final_summary)
+
