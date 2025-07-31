@@ -1,7 +1,12 @@
 from django.core.management.base import BaseCommand
 from news.utils import fetch_news_from_rss, generate_summary  # ✅ Import generate_summary
 from news.models import Article, Category
+from news.utils import generate_summary, generate_audio_summary
 import logging
+from news.utils import generate_summary, generate_audio_summary
+from django.conf import settings  # Needed to calculate relative path
+import os  # Also needed for relpath
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,25 +39,34 @@ class Command(BaseCommand):
             articles_added_from_source = 0
             for article_data in articles_data:
                 try:
-                    # ✅ Check for duplicate by URL
+    # ✅ Check for duplicate by URL
                     if not Article.objects.filter(link=article_data['link']).exists():
-                        # ✅ Generate summary using article content
-                        article_summary = generate_summary(article_data['content'], article_data['title'], num_sentences=5)  
+        # ✅ Generate summary using article content
+                        article_summary = generate_summary(article_data['content'], article_data['title'], num_sentences=5)
 
-                        # ✅ Create article with summary field included
+                            # ✅ First create the article
                         article = Article.objects.create(
-                            title=article_data['title'],
-                            content=article_data['content'],
-                            publication_date=article_data['publication_date'],
-                            author=article_data.get('source', 'Unknown'),
-                            link=article_data['link'],
-                            source=article_data['source'],
-                            summary=article_summary  # ✅ Save generated summary
+                        title=article_data['title'],
+                        content=article_data['content'],
+                        publication_date=article_data['publication_date'],
+                        author=article_data.get('source', 'Unknown'),
+                        link=article_data['link'],
+                        source=article_data['source'],
+                        summary=article_summary
                         )
                         article.categories.add(general_category)
+
+            # ✅ Now generate audio using article.id
+                        audio_url = generate_audio_summary(article_summary, article.id)
+                        if audio_url:
+                            relative_path = os.path.relpath(audio_url, settings.MEDIA_URL)
+                            article.audio_file.name = relative_path
+                            article.save()  # Save again to update the audio_file
+
                         articles_added_from_source += 1
                     else:
                         logger.info(f"Duplicate skipped: {article_data['title']}")
+
                 except Exception as e:
                     logger.error(f"Error saving article: {e} - {article_data.get('title', 'N/A')}")
 

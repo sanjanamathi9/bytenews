@@ -14,6 +14,10 @@ from .models import Article
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import SummaryFeedback
+from django.views.decorators.csrf import csrf_exempt
+from .utils import generate_audio_summary
+import os
+from django.conf import settings
 
 
 logger = logging.getLogger(__name__)
@@ -173,3 +177,22 @@ def submit_summary_feedback(request, pk):
     messages.error(request, 'Invalid feedback provided.')
     return redirect('detail', pk=pk)
 
+
+@csrf_exempt
+@require_POST
+@login_required
+def generate_audio_view(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+
+    if not article.summary:
+        return JsonResponse({'error': 'No summary available to convert.'}, status=400)
+
+    # Generate audio using summary
+    audio_url = generate_audio_summary(article.summary, article.id)
+    if audio_url:
+        relative_path = os.path.relpath(audio_url, settings.MEDIA_URL)
+        article.audio_file.name = relative_path
+        article.save()
+        return JsonResponse({'audio_url': article.audio_file.url})
+    else:
+        return JsonResponse({'error': 'Audio generation failed.'}, status=500)

@@ -33,8 +33,8 @@ class Article(models.Model):
     publication_date = models.DateTimeField(null=True, blank=True)
     author = models.CharField(max_length=255, default='Unknown')
     created_at = models.DateTimeField(auto_now_add=True)
-    audio_file = models.FileField(upload_to='audio/', blank=True, null=True)
-    
+    audio_file = models.FileField(upload_to='news_audio/', blank=True, null=True)
+
     def __str__(self):
         return self.title
     

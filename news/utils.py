@@ -9,6 +9,13 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 import string
 from collections import Counter
+import os
+from gtts import gTTS
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # Download required NLTK data
 nltk.download('punkt')
@@ -101,4 +108,34 @@ def generate_summary(text, article_title="", num_sentences=3):
 
     final_summary = [sentences[i] for i in top_sentence_indices]
     return " ".join(final_summary)
+
+
+def generate_audio_summary(text, article_id):
+    if not text:
+        logger.warning(f"No text provided for audio summary for article_id: {article_id}")
+        return None
+
+    # Create a unique filename
+    filename = f"summary_{article_id}.mp3"
+
+    # Define the full folder path: media/news_audio/
+    audio_dir = os.path.join(settings.MEDIA_ROOT, 'news_audio')
+    os.makedirs(audio_dir, exist_ok=True)  # ✅ Creates the folder if not present
+
+    # Full path to save the audio file
+    filepath = os.path.join(audio_dir, filename)
+
+    try:
+        # Generate and save the MP3 file
+        tts = gTTS(text=text, lang='en')
+        tts.save(filepath)
+        logger.info(f"Generated audio summary for article {article_id} at {filepath}")
+
+        # Return URL relative to MEDIA_URL (used for model FileField or templates)
+        return os.path.join(settings.MEDIA_URL, 'news_audio', filename)
+
+    except Exception as e:
+        logger.error(f"Error generating audio for article {article_id}: {e}")
+        return None
+
 

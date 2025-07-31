@@ -9,5 +9,6 @@ urlpatterns = [
     path('history/', views.reading_history, name='reading_history'),
     path('<int:pk>/', views.article_detail, name='detail'),
     path('article/<int:pk>/feedback/', views.submit_summary_feedback, name='submit_summary_feedback'),
+    path('articles/<int:pk>/generate-audio/', views.generate_audio_view, name='generate_audio'),
 
 ]
