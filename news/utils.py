@@ -14,6 +14,9 @@ from gtts import gTTS
 from django.conf import settings
 import logging
 
+import os
+from gtts import gTTS
+from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
@@ -139,3 +142,20 @@ def generate_audio_summary(text, article_id):
         return None
 
 
+def generate_audio_summary(summary_text, article_id):
+    if not summary_text:
+        return None
+
+    audio_dir = os.path.join(settings.MEDIA_ROOT, 'audio')
+    os.makedirs(audio_dir, exist_ok=True)
+
+    filename = f"article_{article_id}_summary.mp3"
+    filepath = os.path.join(audio_dir, filename)
+
+    try:
+        tts = gTTS(summary_text)
+        tts.save(filepath)
+        return f"{settings.MEDIA_URL}audio/{filename}"
+    except Exception as e:
+        print("Audio generation error:", e)
+        return None

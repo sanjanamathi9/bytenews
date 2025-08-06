@@ -33,7 +33,6 @@
         <h3 class="mt-4">Summary</h3>
         <p>{{ article.summary|linebreaksbr }}</p>
 
-        <!-- 🔹 Summary Feedback (Authenticated Users) -->
         {% if user.is_authenticated %}
             <small class="text-muted">Was this summary helpful?</small>
             <form method="post" action="{% url 'submit_summary_feedback' article.pk %}" class="d-inline-block ms-2">
@@ -56,19 +55,28 @@
         <p>This article doesn't have a summary yet.</p>
     {% endif %}
 
-    <!-- 🔹 Audio Summary (if available) -->
-    {% if article.audio_file %}
-        <hr>
-        <h4 class="mt-4">Audio Summary</h4>
-        <audio controls class="w-100">
-            <source src="{{ article.audio_file.url }}" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-    {% else %}
-        <p class="text-muted">No audio summary available.</p>
-    {% endif %}
+    <!-- 🔹 Audio Summary Section -->
+    <hr>
+    <div id="audio-section">
+        {% if article.audio_file %}
+            <h4 class="mt-4">Audio Summary</h4>
+            <audio controls class="w-100" id="audio-player">
+                <source src="{{ article.audio_file.url }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        {% else %}
+            <p class="text-muted" id="audio-status">No audio summary available.</p>
 
-    <!-- 🔹 Generate Summary Form (Authenticated Users Only) -->
+            {% if user.is_authenticated %}
+                <button class="btn btn-primary btn-sm mt-2" id="generate-audio-btn" data-article-id="{{ article.pk }}">
+                    Generate Audio Summary
+                </button>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
     {% if user.is_authenticated %}
         <form method="get" action="{% url 'generate_summary' article.pk %}" class="mt-4">
             <div class="row g-2 align-items-end">
@@ -86,50 +94,52 @@
         </form>
     {% endif %}
 
-    
-<script>
-document.getElementById('generate-audio-btn')?.addEventListener('click', function() {
-    const btn = this;
-    const status = document.getElementById('audio-status');
-    const audioSection = document.getElementById('audio-section');
-    const articleId = {{ article.id }};
-
-    btn.disabled = true;
-    status.style.display = 'block';
-    status.innerText = "Generating audio, please wait...";
-
-    fetch(`/articles/${articleId}/generate-audio/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.audio_url) {
-            audioSection.innerHTML = `
-                <h4>Audio Summary</h4>
-                <audio controls class="w-100" id="audio-player">
-                    <source src="${data.audio_url}" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-            `;
-            status.innerText = "Audio summary generated.";
-        } else {
-            status.innerText = "Failed to generate audio summary.";
-        }
-    })
-    .catch(() => {
-        status.innerText = "Error occurred during generation.";
-    })
-    .finally(() => {
-        btn.disabled = false;
-    });
-});
-</script>
-
-    <!-- 🔹 Back Button -->
     <a href="{% url 'home' %}" class="btn btn-outline-primary mt-4">Back to Articles</a>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('generate-audio-btn');
+    const status = document.getElementById('audio-status');
+    const audioSection = document.getElementById('audio-section');
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const articleId = btn?.dataset.articleId;
+
+    if (btn) {
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
+            status.style.display = 'block';
+            status.innerText = "Generating audio, please wait...";
+
+            fetch(`/articles/${articleId}/generate-audio-ajax/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    audioSection.innerHTML = `
+                        <h4 class="mt-4">Audio Summary</h4>
+                        <audio controls class="w-100" id="audio-player">
+                            <source src="${data.audio_url}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    `;
+                } else {
+                    status.innerText = "Failed to generate audio summary.";
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                status.innerText = "Error occurred during generation.";
+                btn.disabled = false;
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

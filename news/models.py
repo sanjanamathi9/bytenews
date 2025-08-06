@@ -4,16 +4,20 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    
+
     def __str__(self):
-        return self.name
-    
-    class Meta:
-        ordering = ['name']
+        return self.name  # ✅ Corrected
+
+class UserPreference(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    categories = models.ManyToManyField(Category, related_name='user_pref_categories')
+    preferred_categories = models.ManyToManyField(Category, related_name='user_pref_preferred')
+
+    def __str__(self):  # ✅ Corrected
+        return f"{self.user.username}'s preferences"
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
@@ -41,12 +45,7 @@ class Article(models.Model):
     class Meta:
         ordering = ['-published_date']
 
-class UserPreference(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    preferred_categories = models.ManyToManyField(Category, blank=True)
-    
-    def __str__(self):
-        return f"{self.user.username}'s preferences"
+
 
 class ReadingHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
